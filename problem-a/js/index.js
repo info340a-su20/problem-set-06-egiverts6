@@ -20,7 +20,7 @@ const EXAMPLE_SEARCH_RESULTS = {results:[{
 }]};
 
 
-//For practice, define a function `renderTrack()` that takes as an argument an
+//F`or practice, define a function `renderTrack()` that takes as an argument an`
 //Object representing a SINGLE song track (like an element of the above array) 
 //and adds a new DOM element to the `#records` div representing that track. The 
 //new DOM element should be an `<img>` with a `src` that is the track's 
@@ -33,7 +33,16 @@ const EXAMPLE_SEARCH_RESULTS = {results:[{
 //
 //You can test this function by passing it one of the above array items
 //(e.g., `EXAMPLE_SEARCH_RESULTS.results[0]).
+function renderTrack(song){
+  let records = document.querySelector('#records');
+  let newImg = document.createElement('img');
+  newImg.setAttribute('src', song.artworkUrl100);
+  newImg.setAttribute('alt', song.trackName);
+  newImg.setAttribute('title', song.trackName);
+  records.appendChild(newImg);
+}
 
+renderTrack(EXAMPLE_SEARCH_RESULTS.results[0]);
 
 
 //Define a function `renderSearchResults()` that takes in an object with a
@@ -44,7 +53,20 @@ const EXAMPLE_SEARCH_RESULTS = {results:[{
 //"clear" the previously displayed results first!
 //
 //You can test this function by passing it the `EXAMPLE_SEARCH_RESULTS` object.
+function renderSearchResults(searchResults){
+  let div = document.querySelector('#records');
+  div.innerHTML = "";
+  if(searchResults.results === undefined){
+    renderError(new Error("No results found"));
+  } else {
+    for(let each of searchResults.results){
+      renderTrack(each);
+    }
+  }
 
+}
+
+renderSearchResults(EXAMPLE_SEARCH_RESULTS);
 
 
 //Now it's the time to practice using `fetch()`! First, modify the `index.html`
@@ -67,8 +89,29 @@ const EXAMPLE_SEARCH_RESULTS = {results:[{
 //
 //You can test this function by calling the method and passing it the name of 
 //your favorite band (you CANNOT test it with the search button yet!)
+
 const URL_TEMPLATE = "https://itunes.apple.com/search?entity=song&limit=25&term={searchTerm}";
 
+function fetchTrackList(search){
+  let baseUri = URL_TEMPLATE.replace('{searchTerm}', '');
+  let songInput = search;
+  let song = songInput.value;
+  let fullUri = baseUri + song;
+  togglerSpinner();
+
+  fetch(fullUri)
+    .then(function(response){
+      return response.JSON();
+    })
+    .then(function(data){
+      renderSearchResults(data);
+    })
+    .catch(function(error){
+      renderError(error);
+    });
+    togglerSpinner();
+
+}
 
 
 
@@ -76,14 +119,27 @@ const URL_TEMPLATE = "https://itunes.apple.com/search?entity=song&limit=25&term=
 //the the form is submitted) your `fetchTrackList()` function is called with the
 //user-entered `#searchQuery` value. Use the `preventDefault()` function to keep
 //the form from being submitted as usual (and navigating to a different page).
+let butt = document.querySelector('button');
+butt.addEventListener('submit', function(event){
+  event.preventDefault();
 
+  let search = document.querySelector('#searchQuery');
+  fetchTrackList(search.value);
+})
 
 
 //Next, add some error handling to the page. Define a function `renderError()`
 //that takes in an "Error object" and displays that object's `message` property
 //on the page. Display this by creating a `<p class="alert alert-danger">` and
 //placing that alert inside the `#records` element.
+function renderError(error){
+  let pElement = document.createElement('p');
+  pElement.textContent = error;
+  pElement.classList.add('alert', 'alert-danger');
+  let recordsInfo = document.querySelector('#records');
+  recordsInfo.appendChild(pElement);
 
+}
 
 
 //Add the error handing to your program in two ways:
@@ -107,7 +163,19 @@ const URL_TEMPLATE = "https://itunes.apple.com/search?entity=song&limit=25&term=
 //spinner (show it) BEFORE you send the AJAX request, and toggle it back off
 //after the ENTIRE request is completed (including after any error catching---
 //download the data and `catch()` the error, and `then()` show the spinner.
+function togglerSpinner(){
+  let spinner = document.querySelector('.fa-spinner');
+  if(spinner.classList.contains('.d-none')){
+    spinner.classList.add('.d-none');
+  } else {
+    spinner.classList.remove('.d-none');
+  }
 
+
+  //spinner.classList.toggle('.d-none');
+  //spinner.classList.toggle('.d-block');
+
+}
 
 
 
